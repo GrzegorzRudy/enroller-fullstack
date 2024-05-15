@@ -27,6 +27,19 @@ export default function MeetingsPage({username}) {
         setMeetings(nextMeetings);
     }
 
+    async function handleNewMeeting(meeting) {
+        const response = await fetch('/api/meetings', {
+            method: 'POST',
+            body: JSON.stringify(meeting),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (response.ok) {
+            const nextMeetings = [...meetings, meeting];
+            setMeetings(nextMeetings);
+            setAddingNewMeeting(false);
+        }
+    }
+
     function handleSignOut(meeting) {
         const nextMeetings = meetings.map(m => {
             if (m === meeting) {
