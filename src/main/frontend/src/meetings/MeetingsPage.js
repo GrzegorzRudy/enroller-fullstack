@@ -27,25 +27,22 @@ export default function MeetingsPage({username}) {
         fetchMeetings();
     }, []);
 
-    function handleNewMeeting(meeting) {
-        const nextMeetings = [...meetings, meeting];
-        setMeetings(nextMeetings);
-        setAddingNewMeeting(false);
-    }
-
-    function handleDeleteMeeting(meeting) {
-        const nextMeetings = meetings.filter(m => m !== meeting);
-        setMeetings(nextMeetings);
-    }
-
-    function handleSignIn(meeting) {
-        const nextMeetings = meetings.map(m => {
-            if (m === meeting) {
-                m.participants = [...m.participants, username];
-            }
-            return m;
+    async function handleSignIn(meeting) {
+        const response = await fetch(`/api/meetings/${meeting.id}/participants`, {
+            method: 'POST',
+            body: JSON.stringify({"login": username}),
+            headers: { 'Content-Type': 'application/json' }
         });
-        setMeetings(nextMeetings);
+        if (response.ok) {
+            const newParticipants = await response.json();
+            const nextMeetings = meetings.map(m => {
+                if (m === meeting) {
+                    m.participants = newParticipants;
+                }
+                return m;
+            });
+            setMeetings(nextMeetings);
+        }
     }
 
     async function handleNewMeeting(meeting) {
