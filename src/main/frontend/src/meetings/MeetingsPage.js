@@ -58,14 +58,22 @@ export default function MeetingsPage({username}) {
         }
     }
 
-    function handleSignOut(meeting) {
-        const nextMeetings = meetings.map(m => {
-            if (m === meeting) {
-                m.participants = m.participants.filter(u => u !== username);
-            }
-            return m;
+    async function handleSignOut(meeting) {
+        const response = await fetch(`/api/meetings/${meeting.id}/participants/${username}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
         });
-        setMeetings(nextMeetings);
+
+        if (response.ok) {
+            const newParticipants = await response.json();
+            const nextMeetings = meetings.map(m => {
+                if (m === meeting) {
+                    m.participants = m.participants.filter(u => u.login !== username);
+                }
+                return m;
+            });
+            setMeetings(nextMeetings);
+        }
     }
 
     return (
