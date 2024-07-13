@@ -1,4 +1,4 @@
-import {useState} from "react";
+import React, { useEffect, useState } from 'react';
 import NewMeetingForm from "./NewMeetingForm";
 import MeetingsList from "./MeetingsList";
 
