@@ -19,7 +19,7 @@ function App() {
 
     return (
         <div>
-            <h1>System do zapisów na zajęcia</h1>
+            <h1>System do zapisów na zajęcia:</h1>
             {loggedIn ? <UserPanel username={loggedIn} onLogout={logout}/> : <LoginForm onLogin={login}/>}
         </div>
     );
