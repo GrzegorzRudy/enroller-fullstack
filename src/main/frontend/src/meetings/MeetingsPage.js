@@ -1,20 +1,10 @@
-import {useEffect, useState } from 'react';
+import {useState, useEffect} from "react";
 import NewMeetingForm from "./NewMeetingForm";
 import MeetingsList from "./MeetingsList";
 
 export default function MeetingsPage({username}) {
     const [meetings, setMeetings] = useState([]);
     const [addingNewMeeting, setAddingNewMeeting] = useState(false);
-
-    async function handleDeleteMeeting(meeting) {
-        const response = await fetch(`/api/meetings/${meeting.id}`, {
-            method: 'DELETE',
-        });
-        if (response.ok) {
-            const nextMeetings = meetings.filter(m => m !== meeting);
-            setMeetings(nextMeetings);
-        }
-    }
 
     useEffect(() => {
         const fetchMeetings = async () => {
@@ -27,13 +17,38 @@ export default function MeetingsPage({username}) {
         fetchMeetings();
     }, []);
 
+    async function handleNewMeeting(meeting) {
+         const response = await fetch('/api/meetings', {
+             method: 'POST',
+             body: JSON.stringify(meeting),
+             headers: { 'Content-Type': 'application/json' }
+         });
+         if (response.ok) {
+             const addedMeeting = await response.json();
+             const nextMeetings = [...meetings, addedMeeting];
+             setMeetings(nextMeetings);
+             setAddingNewMeeting(false);
+         }
+       }
+
+    async function handleDeleteMeeting(meeting) {
+         const response = await fetch(`/api/meetings/${meeting.id}`, {
+             method: 'DELETE',
+             headers: { 'Content-Type': 'application/json' }
+         });
+         if (response.ok) {
+            const nextMeetings = meetings.filter(m => m !== meeting);
+            setMeetings(nextMeetings);
+         }
+    }
+
     async function handleSignIn(meeting) {
-        const response = await fetch(`/api/meetings/${meeting.id}/participants`, {
-            method: 'POST',
-            body: JSON.stringify({"login": username}),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (response.ok) {
+         const response = await fetch(`/api/meetings/${meeting.id}/participants`, {
+             method: 'POST',
+             body: JSON.stringify({"login": username}),
+             headers: { 'Content-Type': 'application/json' }
+         });
+         if (response.ok) {
             const newParticipants = await response.json();
             const nextMeetings = meetings.map(m => {
                 if (m === meeting) {
@@ -42,38 +57,25 @@ export default function MeetingsPage({username}) {
                 return m;
             });
             setMeetings(nextMeetings);
-        }
-    }
-
-    async function handleNewMeeting(meeting) {
-        const response = await fetch('/api/meetings', {
-            method: 'POST',
-            body: JSON.stringify(meeting),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (response.ok) {
-            const nextMeetings = [...meetings, meeting];
-            setMeetings(nextMeetings);
-            setAddingNewMeeting(false);
-        }
+         }
     }
 
     async function handleSignOut(meeting) {
-        const response = await fetch(`/api/meetings/${meeting.id}/participants/${username}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
-        });
+         const response = await fetch(`/api/meetings/${meeting.id}/participants/${username}`, {
+             method: 'DELETE',
+             headers: { 'Content-Type': 'application/json' }
+         });
 
-        if (response.ok) {
-            const newParticipants = await response.json();
-            const nextMeetings = meetings.map(m => {
-                if (m === meeting) {
-                    m.participants = m.participants.filter(u => u.login !== username);
-                }
-                return m;
-            });
-            setMeetings(nextMeetings);
-        }
+         if (response.ok) {
+             const newParticipants = await response.json();
+             const nextMeetings = meetings.map(m => {
+                 if (m === meeting) {
+                     m.participants = m.participants.filter(u => u.login !== username);
+                 }
+                 return m;
+             });
+             setMeetings(nextMeetings);
+         }
     }
 
     return (
