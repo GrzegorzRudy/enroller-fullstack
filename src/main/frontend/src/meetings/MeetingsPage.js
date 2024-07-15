@@ -16,48 +16,66 @@ export default function MeetingsPage({username}) {
         };
         fetchMeetings();
     }, []);
+
     async function handleNewMeeting(meeting) {
-        const response = await fetch('/api/meetings', {
-            method: 'POST',
-            body: JSON.stringify(meeting),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (response.ok) {
-            const nextMeetings = [...meetings, meeting];
-            setMeetings(nextMeetings);
-            setAddingNewMeeting(false);
-        }
-    }
+         const response = await fetch('/api/meetings', {
+             method: 'POST',
+             body: JSON.stringify(meeting),
+             headers: { 'Content-Type': 'application/json' }
+         });
+         if (response.ok) {
+             const addedMeeting = await response.json();
+             const nextMeetings = [...meetings, addedMeeting];
+             setMeetings(nextMeetings);
+             setAddingNewMeeting(false);
+         }
+       }
 
     async function handleDeleteMeeting(meeting) {
-        const response = await fetch(`/api/meetings/${meeting.id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (response.ok) {
+         const response = await fetch(`/api/meetings/${meeting.id}`, {
+             method: 'DELETE',
+             headers: { 'Content-Type': 'application/json' }
+         });
+         if (response.ok) {
             const nextMeetings = meetings.filter(m => m !== meeting);
             setMeetings(nextMeetings);
-        }
+         }
     }
 
-    function handleSignIn(meeting) {
-        const nextMeetings = meetings.map(m => {
-            if (m === meeting) {
-                m.participants = [...m.participants, username];
-            }
-            return m;
-        });
-        setMeetings(nextMeetings);
+    async function handleSignIn(meeting) {
+         const response = await fetch(`/api/meetings/${meeting.id}/participants`, {
+             method: 'POST',
+             body: JSON.stringify({"login": username}),
+             headers: { 'Content-Type': 'application/json' }
+         });
+         if (response.ok) {
+            const newParticipants = await response.json();
+            const nextMeetings = meetings.map(m => {
+                if (m === meeting) {
+                    m.participants = newParticipants;
+                }
+                return m;
+            });
+            setMeetings(nextMeetings);
+         }
     }
 
-    function handleSignOut(meeting) {
-        const nextMeetings = meetings.map(m => {
-            if (m === meeting) {
-                m.participants = m.participants.filter(u => u !== username);
-            }
-            return m;
-        });
-        setMeetings(nextMeetings);
+    async function handleSignOut(meeting) {
+         const response = await fetch(`/api/meetings/${meeting.id}/participants/${username}`, {
+             method: 'DELETE',
+             headers: { 'Content-Type': 'application/json' }
+         });
+
+         if (response.ok) {
+             const newParticipants = await response.json();
+             const nextMeetings = meetings.map(m => {
+                 if (m === meeting) {
+                     m.participants = m.participants.filter(u => u.login !== username);
+                 }
+                 return m;
+             });
+             setMeetings(nextMeetings);
+         }
     }
 
     return (
